@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+service messageService {
+  rpc message (instructionRequest) returns (messageResponse) {}
+}
+
+message instructionRequest {
+  int32 limit = 2;
+  string query = 1;
+}
+
+message messageResponse {
+  repeated string results = 1;
+}
