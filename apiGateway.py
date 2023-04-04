@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, responses
 import uvicorn
 import grpc
 import messages_pb2
@@ -9,6 +9,10 @@ from google.protobuf.json_format import MessageToDict
 #uvicorn apiGateway:app --reload
 app = FastAPI()
 roundRobin = 0
+
+@app.get("/", response_class=responses.PlainTextResponse)
+async def root():
+    return "Para crear una cola digite /crearCola/'nombreCola' \nPara Listar una cola digite /listarColas"
 
 @app.get("/crearCola/{nombreCola}")
 async def root(nombreCola):
@@ -58,27 +62,35 @@ async def root(nombreCola):
   
   return {"Respuesta": response}
 
-#######################################
-
-@app.get("/crearTopico")
+@app.get("/verRespuesta")
 async def root():
-  request = 'crearCola'
-  conexionGRPC = gRPC(request)
-  response = conexionGRPC
-
-  return {"Respuesta": response}
-
-@app.get("/borrarTopico")
-async def root(archivo):
-  request = 'borrarTopico'
+  request = f'verRespuesta'
   conexionGRPC = gRPC(request)
   response = conexionGRPC
   
   return {"Respuesta": response}
 
-@app.get("/listarCola")
-async def root(archivo):
-  request = 'listarCola'
+#######################################
+
+@app.get("/crearTopico/{nombreTopico}")
+async def root(nombreTopico):
+  request = f'crearTopico/{nombreTopico}'
+  conexionGRPC = gRPC(request)
+  response = conexionGRPC
+
+  return {"Respuesta": response}
+
+@app.get("/agregarMensajeTopico/{nombreTopico}/{mensaje}")
+async def root(nombreTopico, mensaje):
+  request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}'
+  conexionGRPC = gRPC(request)
+  response = conexionGRPC
+  
+  return {"Respuesta": response}
+
+@app.get("/verMensajesTopico/{nomreTopico}")
+async def root(nomreTopico):
+  request = f'verMensajesTopico/{nomreTopico}'
   conexionGRPC = gRPC(request)
   response = conexionGRPC
   

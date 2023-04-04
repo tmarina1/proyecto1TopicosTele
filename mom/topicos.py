@@ -1,30 +1,41 @@
 import queue
+class Topico:
+  def __init__(self):
+    self.topicos = {}
+    self.suscriptores = []
+    self.visto = {}
 
-topicos = {}
+  def agregarTopico(self, topico):
+    if topico not in self.topicos:
+      self.topicos[topico] = queue.Queue()
 
-def agregarTopico(nombreTopico):
-    topicos[nombreTopico] = queue.Queue()
+  def agregarSuscriptor(self, suscriptor):
+    self.suscriptores.append(suscriptor)
+    self.visto[suscriptor] = 0
 
-def eliminarTipico(nombreTopico):
-    topicos.pop(nombreTopico, None)
-
-def publicar(topico, mensaje):
-    mensajesEnCola = topicos.get(topico)
-    if mensajesEnCola:
-        mensajesEnCola.put(mensaje)
-
-def verMensaje(nombreTopico):
-  mensajesEnCola = topicos.get(nombreTopico)
-  if mensajesEnCola:
-    try:
-      return mensajesEnCola.get(block=False)
-    except queue.Empty:
-      return None
-
-def verTodosLosMensajes(topico):
-    mensajesEnCola = topicos.get(topico)
-    if mensajesEnCola:
-        mensajes = list(mensajesEnCola.queue)  
-        return mensajes
+  def publicar(self, topico, mensaje):
+    if topico in self.topicos:
+      self.topicos[topico].put(mensaje)
     else:
-        return None
+      pass
+
+  def verMensaje(self, topico, suscriptor):
+    if topico in self.topicos and not self.topicos[topico].empty():
+      if suscriptor in self.visto:
+        self.visto[suscriptor] += 1
+        if all(vistos >= 1 for vistos in self.visto.values()):
+          return self.topicos[topico].get()
+        else:
+          return self.topicos[topico].queue[0]
+
+  def verTodosLosMensajes(self, topico):
+    mensajes = []
+    if topico in self.topicos:
+      while not self.topicos[topico].empty():
+        mensajes.append(self.topicos[topico].get())
+      for mensaje in mensajes:
+        self.topicos[topico].put(mensaje)
+    return mensajes
+  
+  def obtenerTopicos(self):
+    return self.topicos
