@@ -39,3 +39,25 @@ class Topico:
   
   def obtenerTopicos(self):
     return self.topicos
+  
+#Yo propongo que quede asi
+#El mom tendria un diccionario global -> nombreTopico: Topic()
+from queue import Queue
+class Topic:
+
+  def __init__(self, nombre):
+    self.suscriptores = {}
+
+  def suscribir(self, suscriptor):
+    self.suscriptores[suscriptor] = Queue(maxsize=0)
+
+  def desuscribir(self, suscriptor):
+    del self.suscriptores[suscriptor]
+  
+  def publicar(self, mensaje):
+    for suscriptor in self.suscriptores.keys():
+      self.suscriptores[suscriptor].put(mensaje)
+
+  def consumir(self, suscriptor):
+    mensaje = self.suscriptores[suscriptor].get()
+    return mensaje
