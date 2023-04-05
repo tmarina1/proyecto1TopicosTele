@@ -12,7 +12,7 @@ roundRobin = 0
 
 @app.get("/", response_class=responses.PlainTextResponse)
 async def root():
-    return "Para crear una cola digite /crearCola/'nombreCola' \nPara Listar una cola digite /listarColas"
+  return "Para crear una cola digite /crearCola/'nombreCola' \nPara Listar una cola digite /listarColas"
 
 @app.get("/crearCola/{nombreCola}")
 async def root(nombreCola):

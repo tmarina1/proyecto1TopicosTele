@@ -7,19 +7,16 @@ from colas import crearCola, agregarElemento, mostrarColas, listarElementosCola,
 from topicos import Topico
 from topicos import *
 
-queue = 0
 Topic = Topico()
 
 class messageService(messages_pb2_grpc.messageServiceServicer):
   def message(self, request, context):
     request = str(request)
     print(f'Hola: {request}')
-    
     if request:
       if "crearCola" in request:
         nombreCola = request.split('/', 1)[1][:-2]
-        global queue
-        queue = crearCola(f'{nombreCola}')
+        crearCola(f'{nombreCola}')
       elif "agregarElemento" in request:
         nombreCola = request.split('/')[1]
         mensaje = request.split('/')[2][:-2]
@@ -32,8 +29,8 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       elif "verCola" in request:
         nombreCola = request.split('/', 1)[1][:-2]
         print(conexion(nombreCola))
-      elif "2" in request:
-        nombreCola = 'respuestas'
+      elif "2" in request: #Respuestas del microservicio
+        nombreCola = 'respuestas' #nombreUsuario
         crearCola(f'{nombreCola}')
         mensaje = request[request.index("query:") + len("query:"):].strip()
         agregarElemento(nombreCola, mensaje)
@@ -54,7 +51,10 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       if "verMensajesTopico" in request:
         nombreTopico = request.split('/', 1)[1][:-2]
         print(Topic.verTodosLosMensajes(f'{nombreTopico}'))
-
+      if "verElementoMS" in request:
+        nombreCola = request.split('/')[1][:-2]
+        respuesta = verElemento(nombreCola)
+        return messages_pb2.messageResponse(results=f"{str(respuesta)}")
       return messages_pb2.messageResponse(results=f"Petición recibida")
     else:
       return messages_pb2.messageResponse(results=f"Petición no recibida")
