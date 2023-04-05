@@ -52,12 +52,19 @@ class Topic:
     self.suscriptores[suscriptor] = Queue(maxsize=0)
 
   def desuscribir(self, suscriptor):
-    del self.suscriptores[suscriptor]
+    if self.suscriptores.get(suscriptor) is not None:
+      del self.suscriptores[suscriptor]
   
   def publicar(self, mensaje):
     for suscriptor in self.suscriptores.keys():
       self.suscriptores[suscriptor].put(mensaje)
 
   def consumir(self, suscriptor):
-    mensaje = self.suscriptores[suscriptor].get()
+    cola = self.suscriptores.get(suscriptor)
+    if cola is not None:
+      try:
+        mensaje = cola.get_nowait()
+      except:
+        mensaje = 'cola vacia'
+
     return mensaje
