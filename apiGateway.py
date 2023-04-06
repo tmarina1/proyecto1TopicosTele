@@ -17,7 +17,22 @@ async def root():
 @app.get("/crearCola/{nombreCola}")
 async def root(nombreCola):
   request = f'crearCola/{nombreCola}'
-  conexionGRPC = gRPC(request)
+  global roundRobin
+  if roundRobin == 0:
+    try:
+      conexionGRPC = gRPC(request)
+      roundRobin = 1
+    except:
+      conexionGRPC = gRPCreplicacion(request)
+      roundRobin = 1
+  elif roundRobin == 1:
+    try:
+      conexionGRPC = gRPCreplicacion(request)
+      roundRobin = 0
+    except:
+      conexionGRPC = gRPC(request)
+      roundRobin = 0
+  
   response = ''.join(conexionGRPC['results'])
 
   return {"Respuesta": response}

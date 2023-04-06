@@ -1,7 +1,6 @@
 import grpc
 import messages_pb2
 import messages_pb2_grpc
-import os
 from concurrent import futures
 from colas import crearCola, agregarElemento, mostrarColas, listarElementosCola, verElemento
 from colaRespuesta import colaRespuestas
@@ -42,19 +41,31 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           cliente = ''
           consulta = ColaRespuesta.consumir(cliente)
           return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
-        if "crearTopico" in request:
-          nombreTopico = request.split('/', 1)[1][:-2]
-          Topico.agregarTopico(f'{nombreTopico}')
-        if "agregarMensajeTopico" in request:
+        elif "crearTopico" in request:
+          nombreTopico = request.replace('\n', '').replace('\\', '')
+          nombreTopico = nombreTopico.split('/')[-1].strip('"n')
+          print(nombreTopico)
+          Topico.crearTopico(nombreTopico)
+        elif "agregarMensajeTopico" in request:
           nombreTopico = request.split('/')[1]
           mensaje = request.split('/')[2][:-2]
           Topico.publicar(nombreTopico, mensaje)
-        if "verMensajesTopico" in request:
+        elif "verMensajesTopico" in request:
           nombreTopico = request.split('/', 1)[1][:-2]
           print(Topico.verTodosLosMensajes(f'{nombreTopico}'))
-        if "verElementoMS" in request:
+        elif "suscribirseTopico" in request:
+          nombreTopico = request.split('/')[1]
+          nombreSuscriptor = request.replace('\n', '').replace('\\', '')
+          nombreSuscriptor = nombreSuscriptor.split('/')[-1].strip('"n')
+          Topico.suscribir(nombreSuscriptor, nombreTopico)
+        elif "verElementoMS" in request:
           nombreCola = request.split('/')[1][:-2]
           respuesta = verElemento(nombreCola)
+          return messages_pb2.messageResponse(results=f"{str(respuesta)}")
+        elif "verDatosEnTopico" in request:
+          nombreTopico = request.split('/')[1]
+          nombreSuscriptor = request.split('/')[2][:-2]
+          respuesta = Topico.consumir(nombreSuscriptor, nombreTopico)
           return messages_pb2.messageResponse(results=f"{str(respuesta)}")
       else:
         if "crearCola" in request:
@@ -101,8 +112,10 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           gRPCreplicacion(request, 2222)
         elif "verMensajesTopico" in request:
           nombreTopico = request.split('/', 1)[1][:-2]
-          print(Topico.verTopicos())
+          verTopico = Topico.verTopicos()
+          print(verTopico)
           gRPCreplicacion(request, 2222)
+          return messages_pb2.messageResponse(results=f"{str(verTopico)}")
         elif "suscribirseTopico" in request:
           nombreTopico = request.split('/')[1]
           nombreSuscriptor = request.split('/')[2][:-2]

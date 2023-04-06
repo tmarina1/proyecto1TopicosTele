@@ -37,16 +37,6 @@ def conexionTopico(nombreTopico, nombreSuscriptor):
     respuesta = gRPC(f'{str(listar)}&{ip}', 2354)
     return respuesta
 
-def conexionPruebas():
-  peticion = 'listarArchivos'
-  if peticion == 'listarArchivos':
-    print(listarArchivos())
-    listar = listarArchivos()
-    respuesta = gRPC(str(listar), 2)
-    print(respuesta)
-  elif peticion == 'buscarArchivo':
-    pass 
-
 def listarArchivos():
   listaDirectorios = os.listdir('/')
   return listaDirectorios
@@ -75,5 +65,5 @@ def gRPC(request):
 
 if __name__ == '__main__':
   #conexionCola('cola1')
-  #suscribirse('topico1', 'Pedro')
-  conexionTopico('topico1', 'Pedro')
+  suscribirse('topico1', 'Sara')
+  #conexionTopico('topico1', 'Pedro')
