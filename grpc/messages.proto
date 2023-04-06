@@ -2,6 +2,7 @@ syntax = "proto3";
 
 service messageService {
   rpc message (instructionRequest) returns (messageResponse) {}
+  rpc sync (instructionRequest) returns (messageResponse) {}
 }
 
 message instructionRequest {

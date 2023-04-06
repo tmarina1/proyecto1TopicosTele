@@ -19,6 +19,11 @@ class messageServiceStub(object):
                 request_serializer=messages__pb2.instructionRequest.SerializeToString,
                 response_deserializer=messages__pb2.messageResponse.FromString,
                 )
+        self.sync = channel.unary_unary(
+                '/messageService/sync',
+                request_serializer=messages__pb2.instructionRequest.SerializeToString,
+                response_deserializer=messages__pb2.messageResponse.FromString,
+                )
 
 
 class messageServiceServicer(object):
@@ -30,11 +35,22 @@ class messageServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def sync(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_messageServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'message': grpc.unary_unary_rpc_method_handler(
                     servicer.message,
+                    request_deserializer=messages__pb2.instructionRequest.FromString,
+                    response_serializer=messages__pb2.messageResponse.SerializeToString,
+            ),
+            'sync': grpc.unary_unary_rpc_method_handler(
+                    servicer.sync,
                     request_deserializer=messages__pb2.instructionRequest.FromString,
                     response_serializer=messages__pb2.messageResponse.SerializeToString,
             ),
@@ -60,6 +76,23 @@ class messageService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/messageService/message',
+            messages__pb2.instructionRequest.SerializeToString,
+            messages__pb2.messageResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def sync(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/messageService/sync',
             messages__pb2.instructionRequest.SerializeToString,
             messages__pb2.messageResponse.FromString,
             options, channel_credentials,

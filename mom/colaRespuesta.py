@@ -14,7 +14,6 @@ class colaRespuestas:
 
   def consumir(self, cliente):
     cola = self.respuestas.get(cliente)
-    print(cola)
     mensaje = ''
     if cola:
       try:

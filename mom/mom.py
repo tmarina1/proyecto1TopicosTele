@@ -7,11 +7,27 @@ from colaRespuesta import colaRespuestas
 from topicos import Topic
 from topicos import *
 from google.protobuf.json_format import MessageToDict
+import pickle
 
 Topico = Topic()
 ColaRespuesta = colaRespuestas()
 
 class messageService(messages_pb2_grpc.messageServiceServicer):
+  def __init__(self) -> None:
+    super().__init__()
+    self.colas = {}
+    self.colasRespuestas = {}
+    self.topicos = {}
+
+  def sync(self, request, context):
+    if request:
+      respuesta = pickle.loads(request)
+      self.colas = respuesta['query'][0]
+      self.colasRespuestas = respuesta['query'][1]
+      self.topicos = respuesta['query'][2]
+      return messages_pb2.messageResponse(results=f"Sincronización recibida")
+    else:
+      return messages_pb2.messageResponse(results=f"Sincronización no recibida")
   def message(self, request, context):
     request = str(request)
     print(f'Hola: {request}')
@@ -72,7 +88,8 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           nombreCola = request.replace('\n', '').replace('\\', '')
           nombreCola = nombreCola.split('/')[-1].strip('"n')
           crearCola(f'{nombreCola}')
-          gRPCreplicacion(request, 2222)
+          estado = [self.colas, self.colasRespuestas, self.topicos]
+          gRPCreplicacion(estado, 2222)
         elif "agregarElemento" in request:
           nombreCola = request.split('/')[1]
           mensaje = request.split('/')[2][:-2]
@@ -138,6 +155,7 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       return messages_pb2.messageResponse(results=f"Petición no recibida")
 
 def gRPCreplicacion(request, tipoDeRetorno):
+  request = pickle.dumps(request)
   channel = grpc.insecure_channel(f'127.0.0.1:8081')
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request, limit=tipoDeRetorno))
