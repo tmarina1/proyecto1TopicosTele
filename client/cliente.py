@@ -4,17 +4,15 @@ import grpc
 import messages_pb2
 import messages_pb2_grpc
 sys.path.append('../mom')
-from mom import queue as colas
-from mom import Topic
-from mom import getTopic
 from google.protobuf.json_format import MessageToDict
 
 def conexionCola(nombreCola):
   peticion = gRPC(f'verElementoMS/{nombreCola}')
   val = ''.join(peticion['results'])
+  ip = val.split('%')[1]
   if 'listarArchivos' in val:
     listar = listarArchivos()
-    respuesta = gRPCrespuesta(str(listar), 2)
+    respuesta = gRPCrespuesta(f'{str(listar)}&{ip}', 2354)
     return respuesta
   elif 'buscarArchivo' in val:
     nombreArchivo = peticion.split('&')[1]
@@ -22,17 +20,21 @@ def conexionCola(nombreCola):
     respuesta = gRPC(str(listar))
     return respuesta
 
+def suscribirse(nombreTopico, nombreSuscriptor):
+  gRPC(f'suscribirseTopico/{nombreTopico}/{nombreSuscriptor}')
+
 def conexionTopico(nombreTopico, nombreSuscriptor):
-  peticion = gRPC(f'verElementoMS/{nombreTopico}')
+  peticion = gRPC(f'verDatosEnTopico/{nombreTopico}/{nombreSuscriptor}')
   val = ''.join(peticion['results'])
+  ip = val.split('%')[1]
   if 'listarArchivos' in val:
     listar = listarArchivos()
-    respuesta = gRPC(str(listar), 2)
+    respuesta = gRPCrespuesta(f'{str(listar)}&{ip}', 2354)
     return respuesta
   elif 'buscarArchivo' in val:
     nombreArchivo = peticion.split('&')[1]
     listar = buscarArchivo(nombreArchivo)
-    respuesta = gRPC(str(listar), 2)
+    respuesta = gRPC(f'{str(listar)}&{ip}', 2354)
     return respuesta
 
 def conexionPruebas():
@@ -71,12 +73,7 @@ def gRPC(request):
   response  = MessageToDict(response)
   return response 
 
-def prueba():
-  print(Topic.obtenerTopicos())
-
 if __name__ == '__main__':
-  #conexionPruebas()
-  conexionCola('cola1')
-  conexionTopico('topico1', 'MS1')
-  #prueba()
-  #print(getTopic())
+  #conexionCola('cola1')
+  #suscribirse('topico1', 'Pedro')
+  conexionTopico('topico1', 'Pedro')

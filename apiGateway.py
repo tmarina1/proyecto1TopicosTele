@@ -1,4 +1,4 @@
-from fastapi import FastAPI, responses
+from fastapi import FastAPI, responses, Request
 import uvicorn
 import grpc
 import messages_pb2
@@ -18,7 +18,7 @@ async def root():
 async def root(nombreCola):
   request = f'crearCola/{nombreCola}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
 
   return {"Respuesta": response}
 
@@ -34,7 +34,7 @@ async def root(archivo):
 async def root():
   request = 'listarColas'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -42,15 +42,16 @@ async def root():
 async def root(nombreCola):
   request = f'listarElementosCola/{nombreCola}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 @app.get("/agregarElemento/{nombreCola}/{mensaje}")
-async def root(nombreCola, mensaje):
-  request = f'agregarElemento/{nombreCola}/{mensaje}'
+async def root(nombreCola, mensaje, request: Request):
+  clienteHost = request.client.host
+  request = f'agregarElemento/{nombreCola}/{mensaje}%{clienteHost}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -58,15 +59,16 @@ async def root(nombreCola, mensaje):
 async def root(nombreCola):
   request = f'verCola/{nombreCola}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 @app.get("/verRespuesta")
-async def root():
-  request = f'verRespuesta'
+async def root(request: Request):
+  clienteHost = request.client.host
+  request = f'verRespuesta&{clienteHost}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -76,15 +78,16 @@ async def root():
 async def root(nombreTopico):
   request = f'crearTopico/{nombreTopico}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
 
   return {"Respuesta": response}
 
 @app.get("/agregarMensajeTopico/{nombreTopico}/{mensaje}")
-async def root(nombreTopico, mensaje):
-  request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}'
+async def root(nombreTopico, mensaje, request: Request):
+  clienteHost = request.client.host
+  request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}%{clienteHost}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -92,12 +95,19 @@ async def root(nombreTopico, mensaje):
 async def root(nomreTopico):
   request = f'verMensajesTopico/{nomreTopico}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 def gRPC(request):
   channel = grpc.insecure_channel(f'127.0.0.1:8080')
+  stub = messages_pb2_grpc.messageServiceStub(channel)
+  response = stub.message(messages_pb2.instructionRequest(query=request))
+  response  = MessageToDict(response)
+  return response 
+
+def gRPCreplicacion(request):
+  channel = grpc.insecure_channel(f'127.0.0.1:8081')
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request))
   response  = MessageToDict(response)
