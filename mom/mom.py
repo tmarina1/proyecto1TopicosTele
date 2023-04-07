@@ -50,10 +50,10 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       elif "listarColas" in query:
         todasLasColas = self.colas.keys()
         return messages_pb2.messageResponse(results=f"Respuesta del servicio: {todasLasColas}")
-      elif "eliminarCola" in query:
+      elif "borrarCola" in query:
         nombreCola = request.replace('\n', '').replace('\\', '')
         nombreCola = nombreCola.split('/')[-1].strip('"n')
-        if nombreCola:
+        if nombreCola in self.colas:
           del self.colas[nombreCola]
           estado = [self.colas, self.colasRespuestas, self.topicos]
           gRPCreplicacion(estado)
@@ -101,7 +101,7 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       elif "eliminarTopico" in query:
         nombreTopico = request.replace('\n', '').replace('\\', '')
         nombreTopico = nombreTopico.split('/')[-1].strip('"n')
-        if nombreTopico:
+        if nombreTopico in self.topicos:
           del self.topicos[nombreTopico]
           estado = [self.colas, self.colasRespuestas, self.topicos]
           gRPCreplicacion(estado)

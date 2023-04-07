@@ -64,5 +64,5 @@ def gRPC(request):
 
 if __name__ == '__main__':
   #conexionCola('cola1')
-  #suscribirse('topico1', 'Sara')
-  conexionTopico('topico1', 'Sara')
+  suscribirse('topico1', 'Sara')
+  #conexionTopico('topico1', 'Sara')

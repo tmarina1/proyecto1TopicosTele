@@ -37,11 +37,11 @@ def root(nombreCola):
 
   return {"Respuesta": response}
 
-@app.get("/borrarCola")
-def root(archivo):
-  request = 'borrarCola'
+@app.get("/borrarCola/{nombreCola}")
+def root(nombreCola):
+  request = f'borrarCola/{nombreCola}'
   conexionGRPC = gRPC(request)
-  response = conexionGRPC
+  response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -87,6 +87,14 @@ def root(nombreTopico):
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])
 
+  return {"Respuesta": response}
+
+@app.get("/eliminarTopico/{nombreTopico}")
+def root(nombreTopico):
+  request = f'eliminarTopico/{nombreTopico}'
+  conexionGRPC = gRPC(request)
+  response = ''.join(conexionGRPC['results'])
+  
   return {"Respuesta": response}
 
 @app.get("/agregarMensajeTopico/{nombreTopico}/{mensaje}")
