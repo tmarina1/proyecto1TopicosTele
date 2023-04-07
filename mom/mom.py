@@ -26,11 +26,14 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       self.colas = respuesta[0]
       self.colasRespuestas = respuesta[1]
       self.topicos = respuesta[2]
+      print('mom1')
+      print(self.topicos['topico1'].suscriptores['Tomas'])
       return messages_pb2.messageResponse(results=f"Sincronización recibida")
     else:
       return messages_pb2.messageResponse(results=f"Sincronización no recibida")
 
   def message(self, request, context):
+    print(request.query)
     request = str(request)
     print(f'Hola: {request}')
     if request:
@@ -92,8 +95,9 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         gRPCreplicacion(estado)
       elif "verElementoMS" in request:
         nombreCola = request.split('/')[1][:-2]
-        respuesta = verElemento(nombreCola)
-        gRPCreplicacion(request)
+        respuesta = self.colas[nombreCola].verElemento()
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
         return messages_pb2.messageResponse(results=f"{str(respuesta)}")
       elif "verDatosEnTopico" in request:
         nombreTopico = request.split('/')[1]

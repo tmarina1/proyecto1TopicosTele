@@ -26,140 +26,87 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       self.colas = respuesta[0]
       self.colasRespuestas = respuesta[1]
       self.topicos = respuesta[2]
+      print('mom2')
       print(self.topicos['topico1'].suscriptores['Tomas'])
       return messages_pb2.messageResponse(results=f"Sincronización recibida")
     else:
       return messages_pb2.messageResponse(results=f"Sincronización no recibida")
   def message(self, request, context):
     request = str(request)
-    limit = 1111
     print(f'Hola: {request}')
     if request:
-      if "2222" in request:
-        if "crearCola" in request:
-          nombreCola = request.replace('\n', '').replace('\\', '')
-          nombreCola = nombreCola.split('/')[-1].strip('"n')
-          crearCola(f'{nombreCola}')
-        elif "agregarElemento" in request:
-          nombreCola = request.split('/')[1]
-          mensaje = request.replace('\n', '').replace('\\', '')
-          mensaje = mensaje.split('/')[-1].strip('"n')
-          agregarElemento(nombreCola, mensaje)
-        elif "listarColas" in request:
-          todasLasColas = mostrarColas()
-        elif "listarElementosCola" in request:
-          nombreCola = request.replace('\n', '').replace('\\', '')
-          nombreCola = nombreCola.split('/')[-1].strip('"n')
-          elementosCola = listarElementosCola(nombreCola)
-          print(elementosCola)
-        elif "2354" in request: #Respuestas del microservicio
-          mensaje = request[request.index("query:") + len("query:"):].strip()
-          cliente = mensaje.split('&')[1].replace('"', '')
-          print(cliente)
-          ColaRespuesta.agregar(cliente, mensaje)
-        elif "verRespuesta" in request:
-          #cliente = str(request.split('&')[1].replace('"', '').replace(" ", ""))
-          cliente = '127.0.0.1'
-          print(cliente)
-          consulta = ColaRespuesta.consumir(cliente)
-          return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
-        elif "crearTopico" in request:
-          nombreTopico = request.replace('\n', '').replace('\\', '')
-          nombreTopico = nombreTopico.split('/')[-1].strip('"n')
-          print(nombreTopico)
-          Topico.crearTopico(nombreTopico)
-        elif "agregarMensajeTopico" in request:
-          nombreTopico = request.split('/')[1]
-          mensaje = request.split('/')[2][:-2]
-          Topico.publicar(mensaje, nombreTopico)
-        elif "verMensajesTopico" in request:
-          nombreTopico = request.split('/', 1)[1][:-2]
-          print(Topico.verTopicos())
-        elif "suscribirseTopico" in request:
-          nombreTopico = request.split('/')[1]
-          nombreSuscriptor = request.replace('\n', '').replace('\\', '')
-          nombreSuscriptor = nombreSuscriptor.split('/')[-1].strip('"n')
-          Topico.suscribir(nombreSuscriptor, nombreTopico)
-        elif "verElementoMS" in request:
-          nombreCola = request.split('/')[1][:-2]
-          respuesta = verElemento(nombreCola)
-          return messages_pb2.messageResponse(results=f"{str(respuesta)}")
-        elif "verDatosEnTopico" in request:
-          nombreTopico = request.split('/')[1]
-          nombreSuscriptor = request.split('/')[2][:-2]
-          respuesta = Topico.consumir(nombreSuscriptor, nombreTopico)
-          return messages_pb2.messageResponse(results=f"{str(respuesta)}")
-      else:
-        if "crearCola" in request:
-          nombreCola = request.replace('\n', '').replace('\\', '')
-          nombreCola = nombreCola.split('/')[-1].strip('"n')
-          crearCola(f'{nombreCola}')
-          gRPCreplicacion(request, limit)
-        elif "agregarElemento" in request:
-          nombreCola = request.split('/')[1]
-          mensaje = request.split('/')[2][:-2]
-          agregarElemento(nombreCola, mensaje)
-          gRPCreplicacion(request, limit)
-        elif "listarColas" in request:
-          todasLasColas = mostrarColas()
-          gRPCreplicacion(request, limit)
-          return messages_pb2.messageResponse(results=f"Respuesta del servicio: {todasLasColas}")
-        elif "listarElementosCola" in request:
-          nombreCola = request.split('/', 1)[1][:-2]
-          elementosCola = listarElementosCola(nombreCola)
-          gRPCreplicacion(request, limit)
-          return messages_pb2.messageResponse(results=f"Respuesta del servicio: {elementosCola}")
-        elif "2354" in request: #Respuestas del microservicio
-          mensaje = request[request.index("query:") + len("query:"):].strip()
-          cliente = mensaje.split('&')[1].replace('"', '')
-          print(cliente)
-          ColaRespuesta.agregar(cliente, mensaje)
-          gRPCreplicacion(request, limit)
-        elif "verRespuesta" in request:
-          #cliente = str(request.split('&')[1].replace('"', '').replace(" ", ""))
-          cliente = '127.0.0.1'
-          print(cliente)
-          consulta = ColaRespuesta.consumir(cliente)
-          gRPCreplicacion(request, limit)
-          return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
-        elif "crearTopico" in request:
-          nombreTopico = request.replace('\n', '').replace('\\', '')
-          nombreTopico = nombreTopico.split('/')[-1].strip('"n')
-          Topico.crearTopico(nombreTopico)
-          gRPCreplicacion(request, limit)
-        elif "agregarMensajeTopico" in request:
-          nombreTopico = request.split('/')[1]
-          mensaje = request.split('/')[2][:-2]
-          Topico.publicar(mensaje, nombreTopico)
-          gRPCreplicacion(request, limit)
-        elif "verMensajesTopico" in request:
-          nombreTopico = request.split('/', 1)[1][:-2]
-          verTopico = Topico.verTopicos()
-          print(verTopico)
-          gRPCreplicacion(request, limit)
-          return messages_pb2.messageResponse(results=f"{str(verTopico)}")
-        elif "suscribirseTopico" in request:
-          nombreTopico = request.split('/')[1]
-          nombreSuscriptor = request.split('/')[2][:-2]
-          Topico.suscribir(nombreSuscriptor, nombreTopico)
-          gRPCreplicacion(request, limit)
-        elif "verElementoMS" in request:
-          nombreCola = request.split('/')[1][:-2]
-          respuesta = verElemento(nombreCola)
-          gRPCreplicacion(request, limit)
-          return messages_pb2.messageResponse(results=f"{str(respuesta)}")
-        elif "verDatosEnTopico" in request:
-          nombreTopico = request.split('/')[1]
-          nombreSuscriptor = request.split('/')[2][:-2]
-          respuesta = Topico.consumir(nombreSuscriptor, nombreTopico)
-          gRPCreplicacion(request, limit)
-          return messages_pb2.messageResponse(results=f"{str(respuesta)}")
+      if "crearCola" in request:
+        nombreCola = request.replace('\n', '').replace('\\', '')
+        nombreCola = nombreCola.split('/')[-1].strip('"n')
+        self.colas[nombreCola] = Queue()
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+      elif "agregarElemento" in request:
+        nombreCola = request.split('/')[1]
+        mensaje = request.split('/')[2][:-2]
+        self.colas[nombreCola].agregarMensaje(mensaje)
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+      elif "listarColas" in request:
+        todasLasColas = self.colas
+        return messages_pb2.messageResponse(results=f"Respuesta del servicio: {todasLasColas}")
+      elif "listarElementosCola" in request:
+        nombreCola = request.split('/', 1)[1][:-2]
+        elementosCola = self.colas[nombreCola]
+        return messages_pb2.messageResponse(results=f"Respuesta del servicio: {elementosCola}")
+      elif "2354" in request: #Respuestas del microservicio
+        mensaje = request[request.index("query:") + len("query:"):].strip()
+        cliente = mensaje.split('&')[1].replace('"', '')
+        print(cliente)
+        ColaRespuesta.agregar(cliente, mensaje)
+        gRPCreplicacion(request, 2222)
+      elif "verRespuesta" in request:
+        cliente = str(request.split('&')[1].replace('"', '').replace(" ", ""))
+        cliente = '127.0.0.1'
+        consulta = ColaRespuesta.consumir(cliente)
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+        return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
+      elif "crearTopico" in request:
+        nombreTopico = request.replace('\n', '').replace('\\', '')
+        nombreTopico = nombreTopico.split('/')[-1].strip('"n')
+        self.topicos[nombreTopico] = Topic()
+        self.topicos[nombreTopico].suscribir('Tomas')
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+      elif "agregarMensajeTopico" in request:
+        nombreTopico = request.split('/')[1]
+        mensaje = request.split('/')[2][:-2]
+        self.topicos[nombreTopico].publicar(mensaje)
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        print(self.topicos['topico1'].suscriptores['Tomas'])
+        gRPCreplicacion(estado)
+      elif "verMensajesTopico" in request:
+        nombreTopico = request.split('/', 1)[1][:-2]
+        verTopico = self.topicos[nombreTopico]
+        return messages_pb2.messageResponse(results=f"{str(verTopico)}")
+      elif "suscribirseTopico" in request:
+        nombreTopico = request.split('/')[1]
+        nombreSuscriptor = request.split('/')[2][:-2]
+        self.topicos[nombreTopico].suscribir(nombreSuscriptor)
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+      elif "verElementoMS" in request:
+        nombreCola = request.split('/')[1][:-2]
+        respuesta = self.colas[nombreCola].verElemento()
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+        return messages_pb2.messageResponse(results=f"{str(respuesta)}")
+      elif "verDatosEnTopico" in request:
+        nombreTopico = request.split('/')[1]
+        nombreSuscriptor = request.split('/')[2][:-2]
+        respuesta = self.topicos[nombreTopico].consumir(nombreSuscriptor)
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
+        return messages_pb2.messageResponse(results=f"{str(respuesta)}")
       return messages_pb2.messageResponse(results=f"Petición recibida")
     else:
       return messages_pb2.messageResponse(results=f"Petición no recibida")
-
-def getTopic():
-  return Topic.obtenerTopicos()
 
 def gRPCreplicacion(request):
   request = pickle.dumps(request)

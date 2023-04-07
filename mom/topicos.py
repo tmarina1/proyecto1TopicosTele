@@ -22,7 +22,7 @@ class Topic:
     mensaje = ''
     if cola is not None:
       try:
-        mensaje = cola.get_nowait()
+        mensaje = cola.pop(0)
       except:
         mensaje = 'cola vacia'
     return mensaje
