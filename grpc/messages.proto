@@ -6,8 +6,9 @@ service messageService {
 }
 
 message instructionRequest {
-  int32 limit = 2;
   string query = 1;
+  int32 limit = 2;
+  bytes estado = 3;
 }
 
 message messageResponse {

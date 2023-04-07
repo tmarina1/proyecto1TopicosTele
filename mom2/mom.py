@@ -7,11 +7,29 @@ from colaRespuesta import colaRespuestas
 from topicos import Topic
 from topicos import *
 from google.protobuf.json_format import MessageToDict
+import pickle
 
 Topico = Topic()
 ColaRespuesta = colaRespuestas()
 
 class messageService(messages_pb2_grpc.messageServiceServicer):
+  def __init__(self) -> None:
+    super().__init__()
+    self.colas = {}
+    self.colasRespuestas = {}
+    self.topicos = {}
+
+  def sync(self, request, context):
+    if request:
+      request = request.estado
+      respuesta = pickle.loads(request)
+      self.colas = respuesta[0]
+      self.colasRespuestas = respuesta[1]
+      self.topicos = respuesta[2]
+      print(self.topicos['topico1'].suscriptores['Tomas'])
+      return messages_pb2.messageResponse(results=f"Sincronización recibida")
+    else:
+      return messages_pb2.messageResponse(results=f"Sincronización no recibida")
   def message(self, request, context):
     request = str(request)
     limit = 1111
@@ -143,11 +161,11 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
 def getTopic():
   return Topic.obtenerTopicos()
 
-def gRPCreplicacion(request, tipoDeRetorno):
+def gRPCreplicacion(request):
+  request = pickle.dumps(request)
   channel = grpc.insecure_channel(f'127.0.0.1:8080')
   stub = messages_pb2_grpc.messageServiceStub(channel)
-  response = stub.message(messages_pb2.instructionRequest(query=request, limit=tipoDeRetorno))
-  response  = MessageToDict(response)
+  response = stub.sync(messages_pb2.instructionRequest(estado=request))
   return response 
 
 def serve():
