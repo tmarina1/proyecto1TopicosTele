@@ -11,11 +11,11 @@ app = FastAPI()
 roundRobin = 0
 
 @app.get("/", response_class=responses.PlainTextResponse)
-async def root():
+def root():
   return "Para crear una cola digite /crearCola/'nombreCola' \nPara Listar una cola digite /listarColas"
 
 @app.get("/crearCola/{nombreCola}")
-async def root(nombreCola):
+def root(nombreCola):
   request = f'crearCola/{nombreCola}'
   global roundRobin
   if roundRobin == 0:
@@ -38,7 +38,7 @@ async def root(nombreCola):
   return {"Respuesta": response}
 
 @app.get("/borrarCola")
-async def root(archivo):
+def root(archivo):
   request = 'borrarCola'
   conexionGRPC = gRPC(request)
   response = conexionGRPC
@@ -46,42 +46,34 @@ async def root(archivo):
   return {"Respuesta": response}
 
 @app.get("/listarColas")
-async def root():
+def root():
   request = 'listarColas'
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
-@app.get("/listarElementosCola/{nombreCola}")
-async def root(nombreCola):
-  request = f'listarElementosCola/{nombreCola}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
-  
-  return {"Respuesta": response}
-
-@app.get("/agregarElemento/{nombreCola}/{mensaje}")
-async def root(nombreCola, mensaje, request: Request):
+@app.get("/agregarElementoCola/{nombreCola}/{mensaje}")
+def root(nombreCola, mensaje, request: Request):
   clienteHost = request.client.host
-  request = f'agregarElemento/{nombreCola}/{mensaje}%{clienteHost}'
+  request = f'agregarElementoCola/{nombreCola}/{mensaje}%{clienteHost}'
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 @app.get("/verCola/{nombreCola}")
-async def root(nombreCola):
+def root(nombreCola):
   request = f'verCola/{nombreCola}'
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
-@app.get("/verRespuesta")
-async def root(request: Request):
+@app.get("/consumir")
+def root(request: Request):
   clienteHost = request.client.host
-  request = f'verRespuesta&{clienteHost}'
+  request = f'consumir&{clienteHost}'
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])
   
@@ -90,7 +82,7 @@ async def root(request: Request):
 #######################################
 
 @app.get("/crearTopico/{nombreTopico}")
-async def root(nombreTopico):
+def root(nombreTopico):
   request = f'crearTopico/{nombreTopico}'
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])
@@ -98,7 +90,7 @@ async def root(nombreTopico):
   return {"Respuesta": response}
 
 @app.get("/agregarMensajeTopico/{nombreTopico}/{mensaje}")
-async def root(nombreTopico, mensaje, request: Request):
+def root(nombreTopico, mensaje, request: Request):
   clienteHost = request.client.host
   request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}%{clienteHost}'
   conexionGRPC = gRPC(request)
@@ -107,7 +99,7 @@ async def root(nombreTopico, mensaje, request: Request):
   return {"Respuesta": response}
 
 @app.get("/verMensajesTopico/{nomreTopico}")
-async def root(nomreTopico):
+def root(nomreTopico):
   request = f'verMensajesTopico/{nomreTopico}'
   conexionGRPC = gRPC(request)
   response = ''.join(conexionGRPC['results'])

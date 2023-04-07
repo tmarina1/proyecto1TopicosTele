@@ -2,16 +2,11 @@ import grpc
 import messages_pb2
 import messages_pb2_grpc
 from concurrent import futures
-from colas import crearCola, agregarElemento, mostrarColas, listarElementosCola, verElemento
-from colaRespuesta import colaRespuestas
+from cola import Cola
 from topicos import Topic
-from topicos import *
 from google.protobuf.json_format import MessageToDict
 import pickle
 import re
-
-Topico = Topic()
-ColaRespuesta = colaRespuestas()
 
 class messageService(messages_pb2_grpc.messageServiceServicer):
   def __init__(self) -> None:
@@ -28,79 +23,99 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       self.colasRespuestas = respuesta[1]
       self.topicos = respuesta[2]
       print('mom1')
-      print(self.topicos['topico1'].suscriptores['Tomas'])
       return messages_pb2.messageResponse(results=f"Sincronización recibida")
     else:
       return messages_pb2.messageResponse(results=f"Sincronización no recibida")
 
   def message(self, request, context):
     print(request.query)
-    request = str(request)
     print(f'Hola: {request}')
     if request:
-      if "crearCola" in request:
+      query = request.query
+      respuestaMS = request.respuesta
+      print(respuestaMS)
+      request = str(request)
+      if "crearCola" in query:
         nombreCola = request.replace('\n', '').replace('\\', '')
         nombreCola = nombreCola.split('/')[-1].strip('"n')
-        self.colas[nombreCola] = Queue()
+        self.colas[nombreCola] = Cola()
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
-      elif "agregarElemento" in request:
+      elif "agregarElementoCola" in query:
         nombreCola = request.split('/')[1]
         mensaje = request.split('/')[2][:-2]
-        self.colas[nombreCola].agregarMensaje(mensaje)
+        self.colas[nombreCola].agregar(mensaje)
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
-      elif "listarColas" in request:
-        todasLasColas = self.colas
+      elif "listarColas" in query:
+        todasLasColas = self.colas.keys()
         return messages_pb2.messageResponse(results=f"Respuesta del servicio: {todasLasColas}")
-      elif "listarElementosCola" in request:
-        nombreCola = request.split('/', 1)[1][:-2]
-        elementosCola = self.colas[nombreCola]
-        return messages_pb2.messageResponse(results=f"Respuesta del servicio: {elementosCola}")
-      elif "2354" in request: #Respuestas del microservicio
-        mensaje = request[request.index("query:") + len("query:"):].strip()
-        cliente = re.search(r'\d+\.\d+\.\d+\.\d+', mensaje).group()
-        ColaRespuesta.agregar(cliente, mensaje)
+      elif "eliminarCola" in query:
+        nombreCola = request.replace('\n', '').replace('\\', '')
+        nombreCola = nombreCola.split('/')[-1].strip('"n')
+        if nombreCola:
+          del self.colas[nombreCola]
+          estado = [self.colas, self.colasRespuestas, self.topicos]
+          gRPCreplicacion(estado)
+          return messages_pb2.messageResponse(results=f"Cola eliminada")
+        else:
+          return messages_pb2.messageResponse(results=f"Cola no existe")
+      elif respuestaMS: #Respuestas del microservicio
+        mensaje = request[:request.index('&')]
+        cliente = re.search(r'\d+\.\d+\.\d+\.\d+', request).group()
+        if cliente in self.colasRespuestas:
+          self.colasRespuestas[cliente].agregar(mensaje)
+        else:
+          self.colasRespuestas[cliente] = Cola()
+          self.colasRespuestas[cliente].agregar(mensaje)
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
-      elif "verRespuesta" in request:
+      elif "consumir" in query:
         cliente = re.search(r'\d+\.\d+\.\d+\.\d+', request).group()
-        consulta = ColaRespuesta.consumir(cliente)
-        print(consulta)
+        consulta = self.colasRespuestas[cliente].consumir()
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
         return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
-      elif "crearTopico" in request:
+      elif "crearTopico" in query:
         nombreTopico = request.replace('\n', '').replace('\\', '')
         nombreTopico = nombreTopico.split('/')[-1].strip('"n')
         self.topicos[nombreTopico] = Topic()
-        self.topicos[nombreTopico].suscribir('Tomas')
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
-      elif "agregarMensajeTopico" in request:
+      elif "agregarMensajeTopico" in query:
         nombreTopico = request.split('/')[1]
         mensaje = request.split('/')[2][:-2]
         self.topicos[nombreTopico].publicar(mensaje)
         estado = [self.colas, self.colasRespuestas, self.topicos]
-        print(self.topicos['topico1'].suscriptores['Tomas'])
         gRPCreplicacion(estado)
-      elif "verMensajesTopico" in request:
+      elif "verMensajesTopico" in query:
         nombreTopico = request.split('/', 1)[1][:-2]
         verTopico = self.topicos[nombreTopico]
         return messages_pb2.messageResponse(results=f"{str(verTopico)}")
-      elif "suscribirseTopico" in request:
+      elif "suscribirTopico" in query:
         nombreTopico = request.split('/')[1]
         nombreSuscriptor = request.split('/')[2][:-2]
         self.topicos[nombreTopico].suscribir(nombreSuscriptor)
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
-      elif "verElementoMS" in request:
+      elif "eliminarTopico" in query:
+        nombreTopico = request.replace('\n', '').replace('\\', '')
+        nombreTopico = nombreTopico.split('/')[-1].strip('"n')
+        if nombreTopico:
+          del self.topicos[nombreTopico]
+          estado = [self.colas, self.colasRespuestas, self.topicos]
+          gRPCreplicacion(estado)
+          return messages_pb2.messageResponse(results=f"Topico eliminado")
+        else:
+          return messages_pb2.messageResponse(results=f"Topico no existe")
+      elif "cCola" in query:
+        print('holii')
         nombreCola = request.split('/')[1][:-2]
-        respuesta = self.colas[nombreCola].verElemento()
+        respuesta = self.colas[nombreCola].consumir()
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
         return messages_pb2.messageResponse(results=f"{str(respuesta)}")
-      elif "verDatosEnTopico" in request:
+      elif "conTopico" in query:
         nombreTopico = request.split('/')[1]
         nombreSuscriptor = request.split('/')[2][:-2]
         respuesta = self.topicos[nombreTopico].consumir(nombreSuscriptor)
