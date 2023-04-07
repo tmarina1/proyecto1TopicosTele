@@ -8,6 +8,7 @@ from topicos import Topic
 from topicos import *
 from google.protobuf.json_format import MessageToDict
 import pickle
+import re
 
 Topico = Topic()
 ColaRespuesta = colaRespuestas()
@@ -58,14 +59,14 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         return messages_pb2.messageResponse(results=f"Respuesta del servicio: {elementosCola}")
       elif "2354" in request: #Respuestas del microservicio
         mensaje = request[request.index("query:") + len("query:"):].strip()
-        cliente = mensaje.split('&')[1].replace('"', '')
-        print(cliente)
+        cliente = re.search(r'\d+\.\d+\.\d+\.\d+', mensaje).group()
         ColaRespuesta.agregar(cliente, mensaje)
-        gRPCreplicacion(request, 2222)
+        estado = [self.colas, self.colasRespuestas, self.topicos]
+        gRPCreplicacion(estado)
       elif "verRespuesta" in request:
-        cliente = str(request.split('&')[1].replace('"', '').replace(" ", ""))
-        cliente = '127.0.0.1'
+        cliente = re.search(r'\d+\.\d+\.\d+\.\d+', request).group()
         consulta = ColaRespuesta.consumir(cliente)
+        print(consulta)
         estado = [self.colas, self.colasRespuestas, self.topicos]
         gRPCreplicacion(estado)
         return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
