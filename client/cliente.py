@@ -1,5 +1,4 @@
 import os
-import sys
 import grpc
 import messages_pb2
 import messages_pb2_grpc
@@ -12,18 +11,21 @@ app = FastAPI()
 @app.get("/consumirCola/{nombreCola}")
 def root(nombreCola):
   response = conexionCola(nombreCola)
+  response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
 @app.get("/consumirTopico/{nombreTopico}/{nombreSuscriptor}")
 def root(nombreTopico, nombreSuscriptor):
   response = conexionTopico(nombreTopico, nombreSuscriptor)
+  response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
 @app.get("/suscribirse/{nombreTopico}/{nombreSuscriptor}")
 def root(nombreTopico, nombreSuscriptor):
   response = suscribirse(nombreTopico, nombreSuscriptor)
+  response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
