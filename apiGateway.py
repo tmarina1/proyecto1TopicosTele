@@ -5,30 +5,39 @@ import messages_pb2
 import messages_pb2_grpc
 import sys
 from google.protobuf.json_format import MessageToDict
+import json
 
 #uvicorn apiGateway:app --reload
 app = FastAPI()
 round_robin = 0
-servers = []
+
+f = open('config.json')
+settings = json.load(f)
+f.close()
+SERVERS = settings['SERVERS']
+
 
 def roundRobin():
   global round_robin
-  global servers
-  if round_robin == len(servers)-1:
+  global SERVERS
+  if round_robin == len(SERVERS)-1:
     round_robin = 0
   else:
     round_robin += 1
 
-  return servers[round_robin]
+  return SERVERS[round_robin]
 
 def conexionBalanceada(request):
   servidor = roundRobin()
   try:
     conexionGRPC = gRPC(request, servidor)
   except:
-    conexionGRPC = gRPCreplicacion(request)
-    servidor = roundRobin()
-    conexionGRPC = gRPC(request, servidor)
+    try:
+      conexionGRPC = gRPCreplicacion(request)
+      servidor = roundRobin()
+      conexionGRPC = gRPC(request, servidor)
+    except:
+      return 'Todos los servidores estan fuera de servicio!'
 
   return conexionGRPC
 
@@ -122,14 +131,16 @@ def root(nomreTopico):
   return {"Respuesta": response}
 
 def gRPC(request, servidor):
-  channel = grpc.insecure_channel(f'127.0.0.1:8080')
+  channel = grpc.insecure_channel(servidor)
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request))
   response  = MessageToDict(response)
   return response 
 
 def gRPCreplicacion(request):
-  channel = grpc.insecure_channel(f'127.0.0.1:8081')
+  global settings
+  mom2 = settings['SERVIDOR_SECUNDARIO']
+  channel = grpc.insecure_channel(mom2)
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request))
   response  = MessageToDict(response)

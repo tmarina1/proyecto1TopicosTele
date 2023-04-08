@@ -41,11 +41,11 @@ def listarArchivos():
   return listaDirectorios
 
 def buscarArchivo(nombreArchivo):
-  isFound = 'File not found.'
-  p = join('/',nombreArchivo)
-  for root, dirs, files in walk(p):
+  isFound = 'Archivo no existe'
+  p = '/'
+  for root, dirs, files in os.walk(p):
       if nombreArchivo in files:
-          isFound = 'Exists!'
+          isFound = 'Existe!'
   return isFound
 
 def gRPCrespuesta(request, tipoDeRetorno):
