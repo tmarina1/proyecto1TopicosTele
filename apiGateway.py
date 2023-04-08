@@ -8,7 +8,29 @@ from google.protobuf.json_format import MessageToDict
 
 #uvicorn apiGateway:app --reload
 app = FastAPI()
-roundRobin = 0
+round_robin = 0
+servers = []
+
+def roundRobin():
+  global round_robin
+  global servers
+  if round_robin == len(servers)-1:
+    round_robin = 0
+  else:
+    round_robin += 1
+
+  return servers[round_robin]
+
+def conexionBalanceada(request):
+  servidor = roundRobin()
+  try:
+    conexionGRPC = gRPC(request, servidor)
+  except:
+    conexionGRPC = gRPCreplicacion(request)
+    servidor = roundRobin()
+    conexionGRPC = gRPC(request, servidor)
+
+  return conexionGRPC
 
 @app.get("/", response_class=responses.PlainTextResponse)
 def root():
@@ -17,23 +39,8 @@ def root():
 @app.get("/crearCola/{nombreCola}")
 def root(nombreCola):
   request = f'crearCola/{nombreCola}'
-  global roundRobin
-  if roundRobin == 0:
-    try:
-      conexionGRPC = gRPC(request)
-      roundRobin = 1
-    except:
-      conexionGRPC = gRPCreplicacion(request)
-      roundRobin = 1
-  elif roundRobin == 1:
-    try:
-      conexionGRPC = gRPCreplicacion(request)
-      roundRobin = 0
-    except:
-      conexionGRPC = gRPC(request)
-      roundRobin = 0
-  
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
@@ -114,7 +121,7 @@ def root(nomreTopico):
   
   return {"Respuesta": response}
 
-def gRPC(request):
+def gRPC(request, servidor):
   channel = grpc.insecure_channel(f'127.0.0.1:8080')
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request))
