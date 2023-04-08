@@ -17,17 +17,18 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
 
   def sync(self, request, context):
     if request:
+      print('mandoDatosActualizadosMom1')
       request = request.estado
       respuesta = pickle.loads(request)
       self.colas = respuesta[0]
       self.colasRespuestas = respuesta[1]
       self.topicos = respuesta[2]
-      print('mom1')
       return messages_pb2.messageResponse(results=f"Sincronización recibida")
     else:
       return messages_pb2.messageResponse(results=f"Sincronización no recibida")
 
   def message(self, request, context):
+    print('En mom1')
     print(request.query)
     print(f'Hola: {request}')
     if request:

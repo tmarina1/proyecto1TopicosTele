@@ -16,7 +16,6 @@ settings = json.load(f)
 f.close()
 SERVERS = settings['SERVERS']
 
-
 def roundRobin():
   global round_robin
   global SERVERS
@@ -38,7 +37,7 @@ def conexionBalanceada(request):
       conexionGRPC = gRPC(request, servidor)
     except:
       return 'Todos los servidores estan fuera de servicio!'
-
+  conexionGRPC = ''.join(conexionGRPC['results'])
   return conexionGRPC
 
 @app.get("/", response_class=responses.PlainTextResponse)
@@ -49,23 +48,23 @@ def root():
 def root(nombreCola):
   request = f'crearCola/{nombreCola}'
   response = conexionBalanceada(request)
-  response = ''.join(response['results'])
+  #response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
 @app.get("/borrarCola/{nombreCola}")
 def root(nombreCola):
   request = f'borrarCola/{nombreCola}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 @app.get("/listarColas")
 def root():
   request = 'listarColas'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -73,16 +72,16 @@ def root():
 def root(nombreCola, mensaje, request: Request):
   clienteHost = request.client.host
   request = f'agregarElementoCola/{nombreCola}/{mensaje}%{clienteHost}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 @app.get("/verCola/{nombreCola}")
 def root(nombreCola):
   request = f'verCola/{nombreCola}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -90,8 +89,8 @@ def root(nombreCola):
 def root(request: Request):
   clienteHost = request.client.host
   request = f'consumir&{clienteHost}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -100,16 +99,16 @@ def root(request: Request):
 @app.get("/crearTopico/{nombreTopico}")
 def root(nombreTopico):
   request = f'crearTopico/{nombreTopico}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
 
   return {"Respuesta": response}
 
 @app.get("/eliminarTopico/{nombreTopico}")
 def root(nombreTopico):
   request = f'eliminarTopico/{nombreTopico}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -117,16 +116,16 @@ def root(nombreTopico):
 def root(nombreTopico, mensaje, request: Request):
   clienteHost = request.client.host
   request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}%{clienteHost}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
 @app.get("/verMensajesTopico/{nomreTopico}")
 def root(nomreTopico):
   request = f'verMensajesTopico/{nomreTopico}'
-  conexionGRPC = gRPC(request)
-  response = ''.join(conexionGRPC['results'])
+  response = conexionBalanceada(request)
+  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
