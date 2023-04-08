@@ -6,6 +6,7 @@ import messages_pb2_grpc
 import sys
 from google.protobuf.json_format import MessageToDict
 import json
+import base64
 
 #uvicorn apiGateway:app --reload
 app = FastAPI()
@@ -47,6 +48,7 @@ def root():
 @app.get("/crearCola/{nombreCola}")
 def root(nombreCola):
   request = f'crearCola/{nombreCola}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(response['results'])
 
@@ -55,6 +57,7 @@ def root(nombreCola):
 @app.get("/borrarCola/{nombreCola}")
 def root(nombreCola):
   request = f'borrarCola/{nombreCola}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -63,6 +66,7 @@ def root(nombreCola):
 @app.get("/listarColas")
 def root():
   request = 'listarColas'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -72,6 +76,7 @@ def root():
 def root(nombreCola, mensaje, request: Request):
   clienteHost = request.client.host
   request = f'agregarElementoCola/{nombreCola}/{mensaje}%{clienteHost}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -80,6 +85,7 @@ def root(nombreCola, mensaje, request: Request):
 @app.get("/verCola/{nombreCola}")
 def root(nombreCola):
   request = f'verCola/{nombreCola}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -89,6 +95,7 @@ def root(nombreCola):
 def root(request: Request):
   clienteHost = request.client.host
   request = f'consumir&{clienteHost}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -99,6 +106,7 @@ def root(request: Request):
 @app.get("/crearTopico/{nombreTopico}")
 def root(nombreTopico):
   request = f'crearTopico/{nombreTopico}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
 
@@ -107,6 +115,7 @@ def root(nombreTopico):
 @app.get("/eliminarTopico/{nombreTopico}")
 def root(nombreTopico):
   request = f'eliminarTopico/{nombreTopico}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -116,6 +125,7 @@ def root(nombreTopico):
 def root(nombreTopico, mensaje, request: Request):
   clienteHost = request.client.host
   request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}%{clienteHost}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -124,6 +134,7 @@ def root(nombreTopico, mensaje, request: Request):
 @app.get("/verMensajesTopico/{nomreTopico}")
 def root(nomreTopico):
   request = f'verMensajesTopico/{nomreTopico}'
+  request = encriptar(request)
   response = conexionBalanceada(request)
   #response = ''.join(conexionGRPC['results'])
   
@@ -144,6 +155,11 @@ def gRPCreplicacion(request):
   response = stub.message(messages_pb2.instructionRequest(query=request))
   response  = MessageToDict(response)
   return response 
+
+def encriptar(texto):
+  texto = texto.encode('utf-8') 
+  texto = base64.b64encode(texto).decode('utf-8')
+  return texto
 
 if __name__ == "__main__":
   uvicorn.run(app, host="127.0.0.1", port=8001)
