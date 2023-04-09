@@ -6,42 +6,85 @@ import uvicorn
 from fastapi import FastAPI, responses, Request
 from google.protobuf.json_format import MessageToDict
 import base64
+import json
 
 app = FastAPI()
+round_robin = 0
+
+f = open('config.json')
+settings = json.load(f)
+f.close()
+SERVERS = settings['SERVERS']
+falloMOM = False
+
+def roundRobin():
+  global round_robin
+  global SERVERS
+  if round_robin == len(SERVERS)-1:
+    round_robin = 0
+  else:
+    round_robin += 1
+  print(SERVERS[round_robin])
+  return SERVERS[round_robin]
+
+def conexionBalanceada(request, tipoDeRespuesta):
+  servidor = roundRobin()
+  global falloMOM
+  try:
+    if falloMOM:
+      comprobar = 'estaVivo'
+      comprobar = encriptar(comprobar)
+      comprobacion = gRPC(comprobar, tipoDeRespuesta, servidor)
+      falloMOM = False
+      servidor = roundRobin()
+      conexionGRPC = gRPC(request, tipoDeRespuesta, servidor)
+    else:
+      conexionGRPC = gRPC(request, tipoDeRespuesta, servidor)
+  except:
+    try:
+      falloMOM = True
+      #conexionGRPC = gRPCreplicacion(request)
+      servidor = roundRobin()
+      conexionGRPC = gRPC(request, tipoDeRespuesta, servidor)
+    except:
+      return 'Todos los servidores estan fuera de servicio!'
+  conexionGRPC = ''.join(conexionGRPC['results'])
+  return conexionGRPC
 
 @app.get("/consumirCola/{nombreCola}")
 def root(nombreCola):
   response = conexionCola(nombreCola)
-  response = ''.join(response['results'])
+  #response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
 @app.get("/consumirTopico/{nombreTopico}/{nombreSuscriptor}")
 def root(nombreTopico, nombreSuscriptor):
   response = conexionTopico(nombreTopico, nombreSuscriptor)
-  response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
 @app.get("/suscribirse/{nombreTopico}/{nombreSuscriptor}")
 def root(nombreTopico, nombreSuscriptor):
   response = suscribirse(nombreTopico, nombreSuscriptor)
-  response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
 def conexionCola(nombreCola):
   request = f'cCola/{nombreCola}'
   request = encriptar(request)
-  peticion = gRPC(request)
+  #peticion = gRPC(request)
+  peticion = conexionBalanceada(request, False)
   error = peticion
-  val = ''.join(peticion['results'])
+  val = peticion
+  #val = ''.join(peticion['results'])
   if 'listarArchivos' in val:
     ip = val.split('%')[1]
     listar = listarArchivos()
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    respuesta = gRPCrespuesta(respuesta, True)
+    #respuesta = gRPCrespuesta(respuesta, True)
+    respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   elif 'buscarArchivo' in val:
     ip = val.split('%')[1]
@@ -49,33 +92,33 @@ def conexionCola(nombreCola):
     listar = buscarArchivo(nombreArchivo)
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    respuesta = gRPCrespuesta(respuesta, True)
+    #respuesta = gRPCrespuesta(respuesta, True)
+    respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   return error
 
 def suscribirse(nombreTopico, nombreSuscriptor):
   request = f'suscribirTopico/{nombreTopico}/{nombreSuscriptor}'
   request = encriptar(request)
-  respuesta = gRPC(request)
+  respuesta = conexionBalanceada(request, False)
   return respuesta
 
 def conexionTopico(nombreTopico, nombreSuscriptor):
   request = f'conTopico/{nombreTopico}/{nombreSuscriptor}'
   request = encriptar(request)
-  peticion = gRPC(request)
+  #peticion = gRPC(request)
+  peticion = conexionBalanceada(request, False)
   error = peticion
+  val = peticion
   print(peticion)
-  val = ''
-  try: 
-    val = ''.join(peticion['results'])
-  except:
-    error = 'no existe usuario'
+  #val = ''.join(peticion['results'])
   if 'listarArchivos' in val:
     ip = val.split('%')[1]
     listar = listarArchivos()
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    respuesta = gRPCrespuesta(respuesta, True)
+    #respuesta = gRPCrespuesta(respuesta, True)
+    respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   elif 'buscarArchivo' in val:
     ip = val.split('%')[1]
@@ -83,7 +126,8 @@ def conexionTopico(nombreTopico, nombreSuscriptor):
     listar = buscarArchivo(nombreArchivo)
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    respuesta = gRPCrespuesta(respuesta, True)
+    #respuesta = gRPCrespuesta(respuesta, True)
+    respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   return error
 
@@ -99,14 +143,14 @@ def buscarArchivo(nombreArchivo):
           isFound = 'Existe!'
   return isFound
 
-def gRPCrespuesta(request, tipoDeRetorno):
-  channel = grpc.insecure_channel(f'127.0.0.1:8080')
+def gRPC(request, tipoDeRetorno, servidor):
+  channel = grpc.insecure_channel(servidor)
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request, respuesta=tipoDeRetorno))
   response  = MessageToDict(response)
   return response 
 
-def gRPC(request):
+def gRPCrespuesta(request):
   channel = grpc.insecure_channel(f'127.0.0.1:8080')
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.message(messages_pb2.instructionRequest(query=request))

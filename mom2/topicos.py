@@ -16,6 +16,7 @@ class Topic:
   def publicar(self, mensaje):
     for suscriptor in self.suscriptores.keys():
       self.suscriptores[suscriptor].append(mensaje)
+      print(suscriptor)
 
   def consumir(self, suscriptor):
     cola = self.suscriptores.get(suscriptor)

@@ -16,6 +16,7 @@ f = open('config.json')
 settings = json.load(f)
 f.close()
 SERVERS = settings['SERVERS']
+falloMOM = False
 
 def roundRobin():
   global round_robin
@@ -24,16 +25,26 @@ def roundRobin():
     round_robin = 0
   else:
     round_robin += 1
-
+  print(SERVERS[round_robin])
   return SERVERS[round_robin]
 
 def conexionBalanceada(request):
   servidor = roundRobin()
+  global falloMOM
   try:
-    conexionGRPC = gRPC(request, servidor)
+    if falloMOM:
+      comprobar = 'estaVivo'
+      comprobar = encriptar(comprobar)
+      comprobacion = gRPC(comprobar, servidor)
+      falloMOM = False
+      servidor = roundRobin()
+      conexionGRPC = gRPC(request, servidor)
+    else:
+      conexionGRPC = gRPC(request, servidor)
   except:
     try:
-      conexionGRPC = gRPCreplicacion(request)
+      falloMOM = True
+      #conexionGRPC = gRPCreplicacion(request)
       servidor = roundRobin()
       conexionGRPC = gRPC(request, servidor)
     except:
@@ -59,7 +70,6 @@ def root(nombreCola):
   request = f'borrarCola/{nombreCola}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -68,7 +78,6 @@ def root():
   request = 'listarColas'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -78,7 +87,6 @@ def root(nombreCola, mensaje, request: Request):
   request = f'agregarElementoCola/{nombreCola}/{mensaje}%{clienteHost}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -87,7 +95,6 @@ def root(nombreCola):
   request = f'verCola/{nombreCola}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -97,7 +104,6 @@ def root(request: Request):
   request = f'consumir&{clienteHost}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -108,7 +114,6 @@ def root(nombreTopico):
   request = f'crearTopico/{nombreTopico}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
 
   return {"Respuesta": response}
 
@@ -117,7 +122,6 @@ def root(nombreTopico):
   request = f'eliminarTopico/{nombreTopico}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -127,7 +131,6 @@ def root(nombreTopico, mensaje, request: Request):
   request = f'agregarMensajeTopico/{nombreTopico}/{mensaje}%{clienteHost}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 
@@ -136,7 +139,6 @@ def root(nomreTopico):
   request = f'verMensajesTopico/{nomreTopico}'
   request = encriptar(request)
   response = conexionBalanceada(request)
-  #response = ''.join(conexionGRPC['results'])
   
   return {"Respuesta": response}
 

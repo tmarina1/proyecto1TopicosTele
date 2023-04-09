@@ -4,6 +4,7 @@ import messages_pb2_grpc
 from concurrent import futures
 from cola import Cola
 from topicos import Topic
+from topicos import *
 from google.protobuf.json_format import MessageToDict
 import pickle
 import re
@@ -33,23 +34,29 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
     print(f'Hola: {request}')
     if request:
       query = desencriptar(request.query)
-      #query = request.query
-      print(query)
       respuestaMS = request.respuesta
       request = str(request)
-      if "crearCola" in query:
+      if "estaVivo" in query:
+        return messages_pb2.messageResponse(results=f"Si")
+      elif "crearCola" in query:
         nombreCola = query.replace('\n', '').replace('\\', '')
         nombreCola = nombreCola.split('/')[-1].strip('"n')
         self.colas[nombreCola] = Cola()
-        estado = [self.colas, self.colasRespuestas, self.topicos]
-        gRPCreplicacion(estado)
+        try:
+          estado = [self.colas, self.colasRespuestas, self.topicos]
+          gRPCreplicacion(estado)
+        except:
+          pass
       elif "agregarElementoCola" in query:
         nombreCola = query.split('/')[1]
         mensaje = query.split('/')[2]
         try:
           self.colas[nombreCola].agregar(mensaje)
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
         except:
           return messages_pb2.messageResponse(results=f"Porfavor vuelva a mandar la petición")
       elif "listarColas" in query:
@@ -60,8 +67,11 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         nombreCola = nombreCola.split('/')[-1].strip('"n')
         if nombreCola in self.colas:
           del self.colas[nombreCola]
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
           return messages_pb2.messageResponse(results=f"Cola eliminada")
         else:
           return messages_pb2.messageResponse(results=f"Cola no existe")
@@ -70,32 +80,52 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         cliente = re.search(r'\d+\.\d+\.\d+\.\d+', query).group()
         if cliente in self.colasRespuestas:
           self.colasRespuestas[cliente].agregar(mensaje)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
         else:
+          print('en else del respuestaMS')
           self.colasRespuestas[cliente] = Cola()
           self.colasRespuestas[cliente].agregar(mensaje)
-        estado = [self.colas, self.colasRespuestas, self.topicos]
-        gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
+        
       elif "consumir" in query:
         cliente = re.search(r'\d+\.\d+\.\d+\.\d+', query).group()
         consulta = self.colasRespuestas[cliente].consumir()
-        estado = [self.colas, self.colasRespuestas, self.topicos]
-        gRPCreplicacion(estado)
+        try:
+          estado = [self.colas, self.colasRespuestas, self.topicos]
+          gRPCreplicacion(estado)
+        except:
+          pass
         return messages_pb2.messageResponse(results=f"Respuesta del servicio {consulta}")
       elif "crearTopico" in query:
         nombreTopico = query.replace('\n', '').replace('\\', '')
         nombreTopico = nombreTopico.split('/')[-1].strip('"n')
         self.topicos[nombreTopico] = Topic()
-        estado = [self.colas, self.colasRespuestas, self.topicos]
-        gRPCreplicacion(estado)
+        try:
+          estado = [self.colas, self.colasRespuestas, self.topicos]
+          gRPCreplicacion(estado)
+        except:
+          pass
       elif "agregarMensajeTopico" in query:
         nombreTopico = query.split('/')[1]
         mensaje = query.split('/')[2]
         try:
           self.topicos[nombreTopico].publicar(mensaje)
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            print('entro en error agregando topico en mom')
+            pass
         except:
-          return messages_pb2.messageResponse(results="El topico al que decea agregar el mensaje no existe")
+          return messages_pb2.messageResponse(results="El topico al que desea agregar el mensaje no existe")
       elif "verMensajesTopico" in query:
         nombreTopico = query.split('/', 1)[1]
         try:
@@ -108,8 +138,11 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         nombreSuscriptor = query.split('/')[2]
         try:
           self.topicos[nombreTopico].suscribir(nombreSuscriptor)
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
           return messages_pb2.messageResponse(results="Se suscribio correctamente")
         except:
           return messages_pb2.messageResponse(results="Topico no existe")
@@ -118,8 +151,11 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         nombreTopico = nombreTopico.split('/')[-1].strip('"n')
         if nombreTopico in self.topicos:
           del self.topicos[nombreTopico]
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
           return messages_pb2.messageResponse(results=f"Topico eliminado")
         else:
           return messages_pb2.messageResponse(results=f"Topico no existe")
@@ -127,8 +163,11 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         nombreCola = query.split('/')[1]
         try:
           respuesta = self.colas[nombreCola].consumir()
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
           return messages_pb2.messageResponse(results=f"{str(respuesta)}")
         except:
           return messages_pb2.messageResponse(results="Cola a consumir no existe")
@@ -137,8 +176,11 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
         nombreSuscriptor = query.split('/')[2]
         try:
           respuesta = self.topicos[nombreTopico].consumir(nombreSuscriptor)
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
+          try:
+            estado = [self.colas, self.colasRespuestas, self.topicos]
+            gRPCreplicacion(estado)
+          except:
+            pass
           return messages_pb2.messageResponse(results=f"{str(respuesta)}")
         except:
           return messages_pb2.messageResponse(results="Suscriptor o topico a consumir no existen")

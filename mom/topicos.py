@@ -1,5 +1,3 @@
-#Yo propongo que quede asi
-#El mom tendria un diccionario global -> nombreTopico: Topic()
 from queue import Queue
 class Topic:
 
@@ -16,6 +14,7 @@ class Topic:
   def publicar(self, mensaje):
     for suscriptor in self.suscriptores.keys():
       self.suscriptores[suscriptor].append(mensaje)
+      print(suscriptor)
 
   def consumir(self, suscriptor):
     cola = self.suscriptores.get(suscriptor)
@@ -25,4 +24,6 @@ class Topic:
         mensaje = cola.pop(0)
       except:
         mensaje = 'cola vacia'
+    else:
+      mensaje = 'Usuario no esta suscrito'
     return mensaje
