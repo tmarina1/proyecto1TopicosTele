@@ -26,4 +26,6 @@ class Topic:
         mensaje = cola.get_nowait()
       except:
         mensaje = 'cola vacia'
+    else:
+      mensaje = 'Usuario no esta suscrito'
     return mensaje
