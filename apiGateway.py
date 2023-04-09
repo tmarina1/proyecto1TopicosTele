@@ -54,7 +54,7 @@ def conexionBalanceada(request):
 
 @app.get("/", response_class=responses.PlainTextResponse)
 def root():
-  return "Para crear una cola digite /crearCola/'nombreCola' \nPara Listar una cola digite /listarColas"
+  return "Para crear una cola digite /crearCola/'nombreCola' \nPara borar un cola ingrese borrarCola/'nombreCola' \nPara Listar las colas digite /listarColas \nPara agregar un elemento a la cola ingrese agregarElementoCola/'nombreCola'/'mensaje' \nPara crear un topico ingrese crearTopico/'nombreTopico' \nPara borar un topico ingrese eliminarTopico/'nombreTopico' \nPara agregar elemento en el topico ingrese agregarMensajeTopico/'nombreTopico'/'mensaje' \nPara ver de un topico ingrese verMensajesTopico/'nombreTopico'  \nPara consumir una cola o topico digite 'consumir'"
 
 @app.get("/crearCola/{nombreCola}")
 def root(nombreCola):
@@ -85,14 +85,6 @@ def root():
 def root(nombreCola, mensaje, request: Request):
   clienteHost = request.client.host
   request = f'agregarElementoCola/{nombreCola}/{mensaje}%{clienteHost}'
-  request = encriptar(request)
-  response = conexionBalanceada(request)
-  
-  return {"Respuesta": response}
-
-@app.get("/verCola/{nombreCola}")
-def root(nombreCola):
-  request = f'verCola/{nombreCola}'
   request = encriptar(request)
   response = conexionBalanceada(request)
   
