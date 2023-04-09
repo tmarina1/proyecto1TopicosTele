@@ -21,6 +21,7 @@ class Topic:
     mensaje = ''
     if cola is not None:
       try:
+        print(cola)
         mensaje = cola.pop(0)
       except:
         mensaje = 'cola vacia'

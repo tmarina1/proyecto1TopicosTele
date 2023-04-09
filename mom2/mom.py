@@ -30,9 +30,9 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
       return messages_pb2.messageResponse(results=f"Sincronización no recibida")
   def message(self, request, context):
     print('En mom2')
-    print(f'Hola: {request}')
     if request:
       query = desencriptar(request.query)
+      print(query)
       respuestaMS = request.respuesta
       request = str(request)
       if "estaVivo" in query:
@@ -89,9 +89,12 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           self.colasRespuestas[cliente] = Cola()
           self.colasRespuestas[cliente].agregar(mensaje)
           try:
+            print('En el try')
             estado = [self.colas, self.colasRespuestas, self.topicos]
             gRPCreplicacion(estado)
+            print('funciono')
           except:
+            print('En el except de try')
             pass
         try:
           estado = [self.colas, self.colasRespuestas, self.topicos]

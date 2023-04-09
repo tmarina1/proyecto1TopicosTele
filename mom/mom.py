@@ -31,9 +31,9 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
 
   def message(self, request, context):
     print('En mom1')
-    print(f'Hola: {request}')
     if request:
       query = desencriptar(request.query)
+      print(query)
       respuestaMS = request.respuesta
       request = str(request)
       if "estaVivo" in query:
@@ -90,9 +90,12 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           self.colasRespuestas[cliente] = Cola()
           self.colasRespuestas[cliente].agregar(mensaje)
           try:
+            print('En el try ')
             estado = [self.colas, self.colasRespuestas, self.topicos]
             gRPCreplicacion(estado)
+            print('funciono')
           except:
+            print('En el except de try')
             pass
         
       elif "consumir" in query:
@@ -122,7 +125,6 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
             estado = [self.colas, self.colasRespuestas, self.topicos]
             gRPCreplicacion(estado)
           except:
-            print('entro en error agregando topico en mom')
             pass
         except:
           return messages_pb2.messageResponse(results="El topico al que desea agregar el mensaje no existe")
