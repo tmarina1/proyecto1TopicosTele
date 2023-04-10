@@ -9,6 +9,13 @@ from google.protobuf.json_format import MessageToDict
 import pickle
 import re
 import base64
+import json
+
+f = open('config.json')
+settings = json.load(f)
+f.close()
+PUERTOGRPC = settings['PUERTOGRPC']
+SERVIDORREPLICACION = settings['SERVIDORREPLICACION']
 
 class messageService(messages_pb2_grpc.messageServiceServicer):
   def __init__(self) -> None:
@@ -57,7 +64,7 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           except:
             pass
         except:
-          return messages_pb2.messageResponse(results=f"Porfavor vuelva a mandar la petición")
+          return messages_pb2.messageResponse(results=f"La cola en la que desea agregar el mensaje no existe")
       elif "listarColas" in query:
         todasLasColas = self.colas.keys()
         return messages_pb2.messageResponse(results=f"Respuesta del servicio: {todasLasColas}")
@@ -85,25 +92,19 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
           except:
             pass
         else:
-          print('en else del respuestaMS')
           self.colasRespuestas[cliente] = Cola()
           self.colasRespuestas[cliente].agregar(mensaje)
           try:
-            print('En el try')
             estado = [self.colas, self.colasRespuestas, self.topicos]
             gRPCreplicacion(estado)
-            print('funciono')
           except:
-            print('En el except de try')
             pass
-        try:
-          estado = [self.colas, self.colasRespuestas, self.topicos]
-          gRPCreplicacion(estado)
-        except:
-          pass
       elif "consumir" in query:
         cliente = re.search(r'\d+\.\d+\.\d+\.\d+', query).group()
-        consulta = self.colasRespuestas[cliente].consumir()
+        try:
+          consulta = self.colasRespuestas[cliente].consumir()
+        except:
+          return messages_pb2.messageResponse(results="No se tienen respuestas")
         try:
           estado = [self.colas, self.colasRespuestas, self.topicos]
           gRPCreplicacion(estado)
@@ -128,7 +129,6 @@ class messageService(messages_pb2_grpc.messageServiceServicer):
             estado = [self.colas, self.colasRespuestas, self.topicos]
             gRPCreplicacion(estado)
           except:
-            print('entro en error en topico')
             pass
         except:
           return messages_pb2.messageResponse(results="El topico al que desea agregar el mensaje no existe")
@@ -201,7 +201,7 @@ def desencriptar(texto):
 
 def gRPCreplicacion(request):
   request = pickle.dumps(request)
-  channel = grpc.insecure_channel(f'127.0.0.1:8080')
+  channel = grpc.insecure_channel(SERVIDORREPLICACION)
   stub = messages_pb2_grpc.messageServiceStub(channel)
   response = stub.sync(messages_pb2.instructionRequest(estado=request))
   return response 
@@ -209,7 +209,7 @@ def gRPCreplicacion(request):
 def serve():
   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
   messages_pb2_grpc.add_messageServiceServicer_to_server(messageService(), server)
-  server.add_insecure_port('[::]:8081')
+  server.add_insecure_port(f'[::]:{PUERTOGRPC}')
   server.start()
   server.wait_for_termination()
 

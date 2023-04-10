@@ -54,7 +54,6 @@ def conexionBalanceada(request, tipoDeRespuesta):
 @app.get("/consumirCola/{nombreCola}")
 def root(nombreCola):
   response = conexionCola(nombreCola)
-  #response = ''.join(response['results'])
 
   return {"Respuesta": response}
 
@@ -73,17 +72,14 @@ def root(nombreTopico, nombreSuscriptor):
 def conexionCola(nombreCola):
   request = f'cCola/{nombreCola}'
   request = encriptar(request)
-  #peticion = gRPC(request)
   peticion = conexionBalanceada(request, False)
   error = peticion
   val = peticion
-  #val = ''.join(peticion['results'])
   if 'listarArchivos' in val:
     ip = val.split('%')[1]
     listar = listarArchivos()
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    #respuesta = gRPCrespuesta(respuesta, True)
     respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   elif 'buscarArchivo' in val:
@@ -92,7 +88,6 @@ def conexionCola(nombreCola):
     listar = buscarArchivo(nombreArchivo)
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    #respuesta = gRPCrespuesta(respuesta, True)
     respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   return error
@@ -106,18 +101,15 @@ def suscribirse(nombreTopico, nombreSuscriptor):
 def conexionTopico(nombreTopico, nombreSuscriptor):
   request = f'conTopico/{nombreTopico}/{nombreSuscriptor}'
   request = encriptar(request)
-  #peticion = gRPC(request)
   peticion = conexionBalanceada(request, False)
   error = peticion
   val = peticion
   print(peticion)
-  #val = ''.join(peticion['results'])
   if 'listarArchivos' in val:
     ip = val.split('%')[1]
     listar = listarArchivos()
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    #respuesta = gRPCrespuesta(respuesta, True)
     respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   elif 'buscarArchivo' in val:
@@ -126,7 +118,6 @@ def conexionTopico(nombreTopico, nombreSuscriptor):
     listar = buscarArchivo(nombreArchivo)
     respuesta = f'{str(listar)}&{ip}'
     respuesta = encriptar(respuesta)
-    #respuesta = gRPCrespuesta(respuesta, True)
     respuesta = conexionBalanceada(respuesta, True)
     return respuesta
   return error
@@ -150,13 +141,6 @@ def gRPC(request, tipoDeRetorno, servidor):
   response  = MessageToDict(response)
   return response 
 
-def gRPCrespuesta(request):
-  channel = grpc.insecure_channel(f'127.0.0.1:8080')
-  stub = messages_pb2_grpc.messageServiceStub(channel)
-  response = stub.message(messages_pb2.instructionRequest(query=request))
-  response  = MessageToDict(response)
-  return response 
-
 def encriptar(texto):
   texto = texto.encode('utf-8') 
   texto = base64.b64encode(texto).decode('utf-8')
@@ -164,6 +148,3 @@ def encriptar(texto):
 
 if __name__ == '__main__':
   uvicorn.run(app, host="127.0.0.1", port=8002)
-  #conexionCola('cola1')
-  #suscribirse('topico1', 'Sara')
-  #conexionTopico('topico1', 'Sara')

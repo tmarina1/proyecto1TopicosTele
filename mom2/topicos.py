@@ -1,5 +1,3 @@
-#Yo propongo que quede asi
-#El mom tendria un diccionario global -> nombreTopico: Topic()
 from queue import Queue
 class Topic:
 
