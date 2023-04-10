@@ -14,6 +14,8 @@ En la comunicación MOM se deben incluir elementos como: Productores: son los si
 ## 1.2. Que aspectos NO cumplió o desarrolló de la actividad propuesta por el profesor (requerimientos funcionales y no funcionales)  
 Faltó implementar el manejo de autenticación de usuarios en el desarrollo del proyecto.  
 ## 2. información general de diseño de alto nivel, arquitectura, patrones, mejores prácticas utilizadas. 
+![arquitecturaProyecto1](https://user-images.githubusercontent.com/61372991/231007707-3559f174-eb54-4346-9b95-685bc9c2504a.png)    
+
 La arquitectura consiste en un Api-Gateway (que genera los request) que esta a la cabeza de dos servidores MOM y por ultimo esta el microservicio. El Api-Gateway esta conectada a los dos MOM y estos están interconectados para sincronizarse, estos MOM están conectados a su vez al microservicio el cual brinda los response.
 ## 3. Descripción del ambiente de desarrollo y técnico: lenguaje de programación, librerias, paquetes, etc, con sus numeros de versiones.
 Todo el proyecto se desarrollo en python. Se usaron librerías como grpc, messages_pb2, messages_pb2_grpc, pickle, base64, entre otras que ayudaron en el proceso del paso de mensajes, de la creación y desarrollo de las colas entre otros.
@@ -52,7 +54,27 @@ Los otros métodos de este archivo son métodos estandarizados para crear una AP
 
    
 ## 4. Descripción del ambiente de EJECUCIÓN (en producción) lenguaje de programación, librerias, paquetes, etc, con sus numeros de versiones.  
-El proyecto se desplego en AWS. Se debe buscar en un browser la `ip/'acción que quiera hacer'`. las acciones que se pueden hacer son: **crearCola, agregarElementoCola, listarColas, borrarCola, consumir, crearTopico, agregarMensajeTopico, verMensajesTopico, suscribirTopico, eliminarTopico.**  
+**Maquinas con el proyecto desplegado**  
+![WhatsApp Image 2023-04-10 at 4 48 16 PM](https://user-images.githubusercontent.com/61372991/231008586-8a51a37e-91c7-4bbe-8550-8a59eaad43e6.jpeg)  
+
+El proyecto se desplego en AWS. Se deben encender todas las instancias y correr los archivos .py de cada una de ellas.  
+Luego, se deben correr los siguientes comandos para el Api Gateway:  
+```bash
+  cd proyecto1TopicosTele
+  python3 apiGateway.py
+```
+Para el microservicio se deben correr los siguientes comandos: 
+```bash
+  cd proyecto1TopicosTele/client
+  python3 cliente.py
+```
+Para los servidores MOM se deben correr los siguientes comandos: 
+```bash
+  cd proyecto1TopicosTele/mom
+  python3 mom.py
+```
+**NOTA:** Como hay dos servidores MOM se debe correr uno con el comando `cd proyecto1TopicosTele/mom` y otro con el comando `cd proyecto1TopicosTele/mom2`  
+Luego de esto, se debe buscar en un browser la `ipDelApiGateway:8080/'acción que quiera hacer'` esto es debido a que los servidores MOM ya tienen las ip elasticas por lo cual no se tienen que hacer configuraciones extra. las acciones que se pueden hacer son: **crearCola, agregarElementoCola, listarColas, borrarCola, consumir, crearTopico, agregarMensajeTopico, verMensajesTopico, suscribirTopico, eliminarTopico.**  
 - Para crear una cola: `crearCola/'nombreCola'`
 - Para borrar un cola: `borrarCola/'nombreCola' ` 
 - Para Listar las colas: `listarColas`  
